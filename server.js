@@ -35,7 +35,7 @@ app.get("/login", (req, res) => {
 app.get("/auth/github", (req, res) => {
   const params = new URLSearchParams({
     client_id: "Ov23liapFKh7Rbc8WyGm",
-    redirect_uri: "http://localhost:4000/auth/callback",
+    redirect_uri: process.env.APP_URL + "/auth/callback",
     scope: "user:email",
   });
   res.redirect(`https://github.com/login/oauth/authorize?${params}`);
