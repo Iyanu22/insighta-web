@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — Insighta Labs</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; }
+    nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-size: 20px; font-weight: 800; color: #38bdf8; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { color: #94a3b8; text-decoration: none; font-size: 14px; }
+    .nav-links a:hover { color: #e2e8f0; }
+    .nav-user { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; }
+    .main { padding: 32px; max-width: 800px; margin: 0 auto; }
+    .back { color: #94a3b8; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 24px; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 32px; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
+    .field { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #334155; }
+    .field:last-child { border-bottom: none; }
+    .field-label { color: #94a3b8; font-size: 14px; }
+    .field-value { font-size: 14px; font-weight: 500; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .male { background: #1d4ed8; color: #bfdbfe; }
+    .female { background: #7c3aed; color: #ede9fe; }
+    .logout-btn { background: transparent; color: #94a3b8; border: none; cursor: pointer; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-logo">Insighta Labs+</div>
+    <div class="nav-links">
+      <a href="/dashboard">Dashboard</a>
+      <a href="/profiles">Profiles</a>
+      <a href="/search">Search</a>
+      <a href="/account">Account</a>
+    </div>
+    <div class="nav-user">
+      <img id="avatar" class="avatar" src="" alt="avatar">
+      <span id="username"></span>
+      <form action="/logout" method="POST">
+        <button class="logout-btn" type="submit">Logout</button>
+      </form>
+    </div>
+  </nav>
+  <div class="main">
+    <a href="/profiles" class="back">← Back to Profiles</a>
+    <div class="card">
+      <h1 id="name">Loading...</h1>
+      <div id="fields"></div>
+    </div>
+  </div>
+  <script>
+    const user = JSON.parse(decodeURIComponent(document.cookie.split('user=')[1]?.split(';')[0] || '{}'));
+    document.getElementById('username').textContent = '@' + (user.username || '');
+    document.getElementById('avatar').src = user.avatar_url || '';
+
+    const id = window.location.pathname.split('/').pop();
+    fetch(`/api/profiles/${id}`).then(r => r.json()).then(data => {
+      const p = data.data;
+      document.getElementById('name').textContent = p.name;
+      document.getElementById('fields').innerHTML = `
+        <div class="field"><span class="field-label">ID</span><span class="field-value">${p.id}</span></div>
+        <div class="field"><span class="field-label">Gender</span><span class="field-value"><span class="badge ${p.gender}">${p.gender}</span></span></div>
+        <div class="field"><span class="field-label">Gender Probability</span><span class="field-value">${(p.gender_probability * 100).toFixed(0)}%</span></div>
+        <div class="field"><span class="field-label">Age</span><span class="field-value">${p.age}</span></div>
+        <div class="field"><span class="field-label">Age Group</span><span class="field-value">${p.age_group}</span></div>
+        <div class="field"><span class="field-label">Country</span><span class="field-value">${p.country_name} (${p.country_id})</span></div>
+        <div class="field"><span class="field-label">Country Probability</span><span class="field-value">${(p.country_probability * 100).toFixed(0)}%</span></div>
+        <div class="field"><span class="field-label">Created At</span><span class="field-value">${new Date(p.created_at).toLocaleString()}</span></div>
+      `;
+    });
+  </script>
+</body>
+</html>

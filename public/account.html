@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account — Insighta Labs</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; }
+    nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-size: 20px; font-weight: 800; color: #38bdf8; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { color: #94a3b8; text-decoration: none; font-size: 14px; }
+    .nav-links a:hover, .nav-links a.active { color: #e2e8f0; }
+    .nav-user { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; }
+    .main { padding: 32px; max-width: 600px; margin: 0 auto; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 32px; display: flex; gap: 24px; align-items: center; margin-bottom: 24px; }
+    .big-avatar { width: 80px; height: 80px; border-radius: 50%; }
+    .user-info h2 { font-size: 20px; font-weight: 700; }
+    .user-info p { color: #94a3b8; font-size: 14px; margin-top: 4px; }
+    .badge { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #0ea5e9; color: white; display: inline-block; margin-top: 8px; }
+    .field { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #334155; }
+    .field:last-child { border-bottom: none; }
+    .field-label { color: #94a3b8; font-size: 14px; }
+    .field-value { font-size: 14px; }
+    .logout-form { margin-top: 24px; }
+    .logout-btn-big { background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; width: 100%; }
+    .nav-logout { background: transparent; color: #94a3b8; border: none; cursor: pointer; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-logo">Insighta Labs+</div>
+    <div class="nav-links">
+      <a href="/dashboard">Dashboard</a>
+      <a href="/profiles">Profiles</a>
+      <a href="/search">Search</a>
+      <a href="/account" class="active">Account</a>
+    </div>
+    <div class="nav-user">
+      <img id="avatar" class="avatar" src="" alt="avatar">
+      <span id="username"></span>
+      <form action="/logout" method="POST">
+        <button class="nav-logout" type="submit">Logout</button>
+      </form>
+    </div>
+  </nav>
+  <div class="main">
+    <h1>Account</h1>
+    <div class="card">
+      <img id="big-avatar" class="big-avatar" src="" alt="avatar">
+      <div class="user-info">
+        <h2 id="display-name">Loading...</h2>
+        <p id="email">Loading...</p>
+        <span class="badge" id="role">Loading...</span>
+      </div>
+    </div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px">
+      <div class="field"><span class="field-label">User ID</span><span class="field-value" id="user-id">—</span></div>
+      <div class="field"><span class="field-label">Member Since</span><span class="field-value" id="created-at">—</span></div>
+    </div>
+    <form action="/logout" method="POST" class="logout-form">
+      <button class="logout-btn-big" type="submit">Sign Out</button>
+    </form>
+  </div>
+  <script>
+    const user = JSON.parse(decodeURIComponent(document.cookie.split('user=')[1]?.split(';')[0] || '{}'));
+    document.getElementById('avatar').src = user.avatar_url || '';
+    document.getElementById('username').textContent = '@' + (user.username || '');
+
+    fetch('/api/users/me').then(r => r.json()).then(data => {
+      const u = data.data;
+      document.getElementById('big-avatar').src = u.avatar_url || '';
+      document.getElementById('display-name').textContent = '@' + u.username;
+      document.getElementById('email').textContent = u.email || 'No email provided';
+      document.getElementById('role').textContent = u.role;
+      document.getElementById('user-id').textContent = u.id;
+      document.getElementById('created-at').textContent = new Date(u.created_at).toLocaleDateString();
+    });
+  </script>
+</body>
+</html>

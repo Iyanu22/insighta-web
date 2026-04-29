@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Insighta Labs</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; }
+    nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-size: 20px; font-weight: 800; color: #38bdf8; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { color: #94a3b8; text-decoration: none; font-size: 14px; }
+    .nav-links a:hover, .nav-links a.active { color: #e2e8f0; }
+    .nav-user { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; }
+    .main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #94a3b8; margin-bottom: 32px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; }
+    .stat-label { color: #94a3b8; font-size: 14px; margin-bottom: 8px; }
+    .stat-value { font-size: 36px; font-weight: 700; color: #38bdf8; }
+    .btn { background: #38bdf8; color: #0f172a; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; text-decoration: none; font-weight: 600; }
+    .btn-outline { background: transparent; color: #e2e8f0; border: 1px solid #334155; padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; text-decoration: none; }
+    form { display: inline; }
+    .logout-btn { background: transparent; color: #94a3b8; border: none; cursor: pointer; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-logo">Insighta Labs+</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="active">Dashboard</a>
+      <a href="/profiles">Profiles</a>
+      <a href="/search">Search</a>
+      <a href="/account">Account</a>
+    </div>
+    <div class="nav-user">
+      <img id="avatar" class="avatar" src="" alt="avatar">
+      <span id="username"></span>
+      <form action="/logout" method="POST">
+        <button class="logout-btn" type="submit">Logout</button>
+      </form>
+    </div>
+  </nav>
+  <div class="main">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Welcome to Insighta Labs+ Intelligence Platform</p>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Profiles</div>
+        <div class="stat-value" id="total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Male Profiles</div>
+        <div class="stat-value" id="male">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Female Profiles</div>
+        <div class="stat-value" id="female">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Seniors</div>
+        <div class="stat-value" id="senior">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Children</div>
+        <div class="stat-value" id="child">—</div>
+      </div>
+    </div>
+    <a href="/profiles" class="btn">View All Profiles</a>
+    <a href="/search" class="btn-outline" style="margin-left:12px">Search Profiles</a>
+  </div>
+  <script>
+    const user = JSON.parse(decodeURIComponent(document.cookie.split('user=')[1]?.split(';')[0] || '{}'));
+    document.getElementById('username').textContent = '@' + (user.username || '');
+    document.getElementById('avatar').src = user.avatar_url || '';
+
+    fetch('/api/stats').then(r => r.json()).then(data => {
+      document.getElementById('total').textContent = data.total;
+      document.getElementById('male').textContent = data.male;
+      document.getElementById('female').textContent = data.female;
+      document.getElementById('senior').textContent = data.senior;
+      document.getElementById('child').textContent = data.child;
+    });
+  </script>
+</body>
+</html>

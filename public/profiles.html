@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profiles — Insighta Labs</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; }
+    nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-size: 20px; font-weight: 800; color: #38bdf8; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { color: #94a3b8; text-decoration: none; font-size: 14px; }
+    .nav-links a:hover, .nav-links a.active { color: #e2e8f0; }
+    .nav-user { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; }
+    .main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
+    .filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .filters select, .filters input { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
+    .btn { background: #38bdf8; color: #0f172a; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; }
+    th { background: #0f172a; padding: 12px 16px; text-align: left; font-size: 12px; color: #94a3b8; text-transform: uppercase; }
+    td { padding: 12px 16px; border-top: 1px solid #334155; font-size: 14px; }
+    tr:hover td { background: #334155; cursor: pointer; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .male { background: #1d4ed8; color: #bfdbfe; }
+    .female { background: #7c3aed; color: #ede9fe; }
+    .pagination { display: flex; gap: 8px; margin-top: 24px; align-items: center; }
+    .page-btn { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .logout-btn { background: transparent; color: #94a3b8; border: none; cursor: pointer; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-logo">Insighta Labs+</div>
+    <div class="nav-links">
+      <a href="/dashboard">Dashboard</a>
+      <a href="/profiles" class="active">Profiles</a>
+      <a href="/search">Search</a>
+      <a href="/account">Account</a>
+    </div>
+    <div class="nav-user">
+      <img id="avatar" class="avatar" src="" alt="avatar">
+      <span id="username"></span>
+      <form action="/logout" method="POST">
+        <button class="logout-btn" type="submit">Logout</button>
+      </form>
+    </div>
+  </nav>
+  <div class="main">
+    <h1>Profiles</h1>
+    <div class="filters">
+      <select id="gender">
+        <option value="">All Genders</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+      <select id="age_group">
+        <option value="">All Age Groups</option>
+        <option value="child">Child</option>
+        <option value="teenager">Teenager</option>
+        <option value="adult">Adult</option>
+        <option value="senior">Senior</option>
+      </select>
+      <input id="country_id" placeholder="Country ID (e.g. NG)" style="width:160px">
+      <input id="min_age" type="number" placeholder="Min Age" style="width:100px">
+      <input id="max_age" type="number" placeholder="Max Age" style="width:100px">
+      <button class="btn" onclick="loadProfiles(1)">Filter</button>
+    </div>
+    <div id="info" style="color:#94a3b8;font-size:14px;margin-bottom:12px"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Gender</th>
+          <th>Age</th>
+          <th>Age Group</th>
+          <th>Country</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="pagination">
+      <button class="page-btn" id="prev" onclick="changePage(-1)">← Prev</button>
+      <span id="page-info"></span>
+      <button class="page-btn" id="next" onclick="changePage(1)">Next →</button>
+    </div>
+  </div>
+  <script>
+    const user = JSON.parse(decodeURIComponent(document.cookie.split('user=')[1]?.split(';')[0] || '{}'));
+    document.getElementById('username').textContent = '@' + (user.username || '');
+    document.getElementById('avatar').src = user.avatar_url || '';
+
+    let currentPage = 1;
+    let totalPages = 1;
+
+    function getParams() {
+      const params = new URLSearchParams();
+      params.set('page', currentPage);
+      params.set('limit', 10);
+      const gender = document.getElementById('gender').value;
+      const age_group = document.getElementById('age_group').value;
+      const country_id = document.getElementById('country_id').value;
+      const min_age = document.getElementById('min_age').value;
+      const max_age = document.getElementById('max_age').value;
+      if (gender) params.set('gender', gender);
+      if (age_group) params.set('age_group', age_group);
+      if (country_id) params.set('country_id', country_id);
+      if (min_age) params.set('min_age', min_age);
+      if (max_age) params.set('max_age', max_age);
+      return params;
+    }
+
+    async function loadProfiles(page) {
+      currentPage = page || currentPage;
+      const params = getParams();
+      const res = await fetch('/api/profiles?' + params);
+      const data = await res.json();
+      totalPages = data.total_pages;
+      document.getElementById('info').textContent = `Showing page ${data.page} of ${data.total_pages} (${data.total} total)`;
+      document.getElementById('page-info').textContent = `Page ${data.page} of ${data.total_pages}`;
+      document.getElementById('prev').disabled = data.page <= 1;
+      document.getElementById('next').disabled = data.page >= data.total_pages;
+
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = data.data.map(p => `
+        <tr onclick="window.location='/profiles/${p.id}'">
+          <td>${p.name}</td>
+          <td><span class="badge ${p.gender}">${p.gender}</span></td>
+          <td>${p.age}</td>
+          <td>${p.age_group}</td>
+          <td>${p.country_id}</td>
+        </tr>
+      `).join('');
+    }
+
+    function changePage(dir) {
+      currentPage = Math.max(1, Math.min(totalPages, currentPage + dir));
+      loadProfiles();
+    }
+
+    loadProfiles(1);
+  </script>
+</body>
+</html>
